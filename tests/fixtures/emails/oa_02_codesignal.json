@@ -1,0 +1,9 @@
+{
+  "id": "oa_02_codesignal",
+  "sender_domain": "codesignal.com",
+  "subject": "Uber Coding Challenge: General Coding Assessment",
+  "body": "Hello,\n\nYou have been invited by Uber to take the General Coding Assessment (GCA) on CodeSignal. You have 14 days to complete or share an existing score.\n\nTake Assessment: https://app.codesignal.com/invitation/uber-test-1234\n\nThanks,\nUber Talent Team",
+  "expected_label": "oa",
+  "company": "Uber",
+  "platform": "CodeSignal"
+}

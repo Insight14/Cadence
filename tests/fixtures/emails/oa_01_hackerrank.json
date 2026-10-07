@@ -1,0 +1,9 @@
+{
+  "id": "oa_01_hackerrank",
+  "sender_domain": "hackerrank.com",
+  "subject": "Waymo: Software Engineering Intern Coding Assessment",
+  "body": "Hi Sourish,\n\nThank you for applying to Waymo! As next steps, please complete the following 90-minute technical assessment on HackerRank within 7 days of receiving this email.\n\nLink: https://hackerrank.com/tests/waymo-swe-intern-2026\n\nBest,\nWaymo Recruiting Team",
+  "expected_label": "oa",
+  "company": "Waymo",
+  "platform": "HackerRank"
+}

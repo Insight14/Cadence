@@ -1,0 +1,9 @@
+{
+  "id": "rejection_03_standard",
+  "sender_domain": "workday.com",
+  "subject": "Status of your application for Nvidia Software Engineer",
+  "body": "Thank you for applying to NVIDIA. After careful consideration, we regret to inform you that we will not be moving forward with your candidacy for this role. We appreciate the time and effort you invested in applying.\n\nNVIDIA Talent Acquisition",
+  "expected_label": "rejection",
+  "company": "Nvidia",
+  "platform": null
+}

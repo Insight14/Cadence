@@ -1,0 +1,21 @@
+id,sender_domain,subject,body_snippet,true_label
+1,hackerrank.com,Waymo: Software Engineering Intern Coding Assessment,"Thank you for applying to Waymo! As next steps, please complete the following 90-minute technical assessment on HackerRank within 7 days.",oa
+2,codesignal.com,Uber Coding Challenge: General Coding Assessment,"You have been invited by Uber to take the General Coding Assessment on CodeSignal. You have 14 days to complete.",oa
+3,hirevue.com,JPMorgan Chase: Software Engineering On-Demand Video Interview & Coding,"Please complete your HireVue digital interview and coding assessment within 5 days.",oa
+4,codility.com,Citadel Coding Assessment Invitation,"Citadel invites you to solve the algorithmic assessment on Codility within 72 hours.",oa
+5,greenhouse.io,Aurora: Invitation to Schedule Initial Technical Screen,"We reviewed your application for Software Engineer Intern at Aurora and would love to schedule a 45-minute technical screen.",interview
+6,karat.com,Schedule your Robinhood first-round technical interview via Karat,"Robinhood has partnered with Karat to conduct your first-round technical interview. Schedule at your convenience.",interview
+7,lever.co,Figma: Invitation to Final Virtual Onsite Interview Loop,"Congratulations on passing the coding assessment! We are excited to invite you to the final virtual onsite interview loop with Figma.",interview
+8,greenhouse.io,Thank you for applying to Stripe!,"Thank you for applying to the Software Engineer position at Stripe. We have received your application and will be in touch soon.",application_confirmation
+9,lever.co,Application Submitted: Machine Learning Engineer Intern at Scale AI,"We received your application for Machine Learning Engineer Intern at Scale AI. Thanks for your interest in joining our team!",application_confirmation
+10,myworkday.com,Autodesk Candidate Application Confirmation,"Thank you for submitting your application for Software Development Engineer at Autodesk. You can check your status in Workday.",application_confirmation
+11,greenhouse.io,Update on your application to Cruise,"Thank you for taking the time to interview with Cruise. While we were impressed by your background, we have decided to move forward with other candidates.",rejection
+12,lever.co,Your application to Databricks,"Thank you for your interest in Databricks. Unfortunately, we are not moving forward with your application at this time.",rejection
+13,workday.com,Status of your application for Nvidia Software Engineer,"After careful consideration, we regret to inform you that we will not be moving forward with your candidacy for this role.",rejection
+14,tldr.tech,TLDR AI: Claude 3.7 Sonnet Released & New Benchmarks,"Daily tech newsletter covering breakthroughs in artificial intelligence, robotics, and machine learning.",other
+15,github.com,[GitHub] Pull request #42 merged into main (Insight14/Cadence),"Your pull request was successfully reviewed and merged by sourish.",other
+16,uber.com,Your Wednesday morning trip with Uber,"Thanks for riding with Uber. Total: $18.42 paid via Apple Pay.",other
+17,spotify.com,Your 2026 Daily Mix is Ready,"Listen to your latest personalized mixes tailored for your commute.",other
+18,codesignal.com,Robinhood Coding Assessment Invitation,"Please complete your Robinhood software engineer coding challenge on CodeSignal within 7 days.",oa
+19,ashbyhq.com,Ramp: Software Engineer Interview Invitation,"We would like to invite you to the next round of interviews for the Ramp Software Engineer position.",interview
+20,ashbyhq.com,Thanks for applying to Ramp!,"Your application for Backend Engineer at Ramp has been received. Our team will review it shortly.",application_confirmation

@@ -1,0 +1,9 @@
+{
+  "id": "interview_02_karat",
+  "sender_domain": "karat.com",
+  "subject": "Schedule your Robinhood first-round technical interview via Karat",
+  "body": "Hi Sourish,\n\nRobinhood has partnered with Karat to conduct your first-round technical interview. You can schedule your 60-minute interview 24/7 at your convenience.\n\nSchedule here: https://karat.com/interview/schedule/robinhood-swe-123\n\nKarat Team",
+  "expected_label": "interview",
+  "company": "Robinhood",
+  "platform": "Karat"
+}

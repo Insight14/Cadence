@@ -1,0 +1,9 @@
+{
+  "id": "interview_01_phone_screen",
+  "sender_domain": "greenhouse.io",
+  "subject": "Aurora: Invitation to Schedule Initial Technical Screen",
+  "body": "Hi Sourish,\n\nWe reviewed your application for the Software Engineer Intern role at Aurora and would love to schedule a 45-minute technical screen with one of our engineering leads.\n\nPlease select a time slot on my Calendly within the next 3 days: https://calendly.com/aurora-recruiting/tech-screen\n\nLooking forward to speaking with you!\nAurora Talent Team",
+  "expected_label": "interview",
+  "company": "Aurora",
+  "platform": "Calendly"
+}

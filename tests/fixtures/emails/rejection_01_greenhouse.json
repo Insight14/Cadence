@@ -1,0 +1,9 @@
+{
+  "id": "rejection_01_greenhouse",
+  "sender_domain": "greenhouse.io",
+  "subject": "Update on your application to Cruise",
+  "body": "Hi Sourish,\n\nThank you for taking the time to interview with Cruise for the Autonomous Systems Engineer Intern role. While we were impressed by your background, we have decided to move forward with other candidates whose experience more closely aligns with our current needs.\n\nWe wish you the best in your job search.\nCruise Recruiting",
+  "expected_label": "rejection",
+  "company": "Cruise",
+  "platform": null
+}

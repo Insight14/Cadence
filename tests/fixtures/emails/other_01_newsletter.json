@@ -1,0 +1,9 @@
+{
+  "id": "other_01_newsletter",
+  "sender_domain": "tldr.tech",
+  "subject": "TLDR AI: Claude 3.7 Sonnet Released & New Benchmarks",
+  "body": "Daily tech newsletter covering breakthroughs in artificial intelligence, robotics, and machine learning. Read the full summary inside.\n\nTo unsubscribe click here.",
+  "expected_label": "other",
+  "company": null,
+  "platform": null
+}

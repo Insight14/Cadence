@@ -1,0 +1,9 @@
+{
+  "id": "confirmation_01_greenhouse",
+  "sender_domain": "greenhouse.io",
+  "subject": "Thank you for applying to Stripe!",
+  "body": "Hi Sourish,\n\nThank you for applying to the Software Engineer (University Graduate) position at Stripe. We have received your application and our team is currently reviewing your resume. We will be in touch with next steps soon.\n\nBest regards,\nStripe Recruiting",
+  "expected_label": "application_confirmation",
+  "company": "Stripe",
+  "platform": null
+}

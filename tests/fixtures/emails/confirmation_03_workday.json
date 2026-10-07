@@ -1,0 +1,9 @@
+{
+  "id": "confirmation_03_workday",
+  "sender_domain": "myworkday.com",
+  "subject": "Autodesk Candidate Application Confirmation",
+  "body": "Thank you for submitting your application for Software Development Engineer at Autodesk. You can check your application status by logging into your Workday candidate portal.\n\nAutodesk Talent Acquisition",
+  "expected_label": "application_confirmation",
+  "company": "Autodesk",
+  "platform": null
+}

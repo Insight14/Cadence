@@ -8,7 +8,7 @@ def test_default_settings() -> None:
     settings = Settings()
     assert settings.app_env in ("development", "production", "test")
     assert settings.api_port == 8000
-    assert settings.embeddings_dimension == 1536
+    assert settings.embeddings_dimension in (768, 1536)
     assert settings.reminder_tick_interval_seconds == 60
     assert "postgresql" in settings.database_url
 

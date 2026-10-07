@@ -1,0 +1,9 @@
+{
+  "id": "other_02_github_notification",
+  "sender_domain": "github.com",
+  "subject": "[GitHub] Pull request #42 merged into main (Insight14/Cadence)",
+  "body": "Your pull request #42 'feat: implement Stage 1 rules and Gemini classifier' was successfully reviewed and merged by sourish.\n\nView diff on GitHub.",
+  "expected_label": "other",
+  "company": null,
+  "platform": null
+}

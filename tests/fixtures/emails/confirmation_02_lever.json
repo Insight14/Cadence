@@ -1,0 +1,9 @@
+{
+  "id": "confirmation_02_lever",
+  "sender_domain": "lever.co",
+  "subject": "Application Submitted: Machine Learning Engineer Intern at Scale AI",
+  "body": "Hi Sourish,\n\nWe received your application for Machine Learning Engineer Intern at Scale AI. Thanks for your interest in joining our team! We will follow up shortly if your background is a match.\n\nScale AI Recruiting",
+  "expected_label": "application_confirmation",
+  "company": "Scale AI",
+  "platform": null
+}

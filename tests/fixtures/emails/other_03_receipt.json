@@ -1,0 +1,9 @@
+{
+  "id": "other_03_receipt",
+  "sender_domain": "uber.com",
+  "subject": "Your Wednesday morning trip with Uber",
+  "body": "Thanks for riding with Uber. Total: $18.42 paid via Apple Pay. We hope you enjoyed your ride.\n\nView receipt details on uber.com/receipts.",
+  "expected_label": "other",
+  "company": null,
+  "platform": null
+}

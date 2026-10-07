@@ -1,0 +1,9 @@
+{
+  "id": "oa_03_hirevue",
+  "sender_domain": "hirevue.com",
+  "subject": "JPMorgan Chase: Software Engineering On-Demand Video Interview & Coding",
+  "body": "Dear Candidate,\n\nPlease complete your HireVue digital interview and coding assessment within 5 days.\n\nAccess link: https://jpmorgan.hirevue.com/open/interview/123\n\nJPMorgan Chase Campus Recruiting",
+  "expected_label": "oa",
+  "company": "JPMorgan Chase",
+  "platform": "HireVue"
+}

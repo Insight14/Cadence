@@ -1,0 +1,9 @@
+{
+  "id": "rejection_02_lever",
+  "sender_domain": "lever.co",
+  "subject": "Your application to Databricks",
+  "body": "Dear Candidate,\n\nThank you for your interest in Databricks. Unfortunately, we are not moving forward with your application for the Software Engineer New Grad position at this time.\n\nWe encourage you to apply for future openings that match your skills.\n\nBest regards,\nDatabricks Recruiting",
+  "expected_label": "rejection",
+  "company": "Databricks",
+  "platform": null
+}

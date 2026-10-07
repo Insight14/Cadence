@@ -8,6 +8,8 @@ from typing import Any
 
 from fastapi import FastAPI, status
 
+from jobpilot.api.routes_auth import router as auth_router
+from jobpilot.api.routes_onboarding import router as onboarding_router
 from jobpilot.config import get_settings
 
 
@@ -41,6 +43,9 @@ app = FastAPI(
     version="0.1.0",
     lifespan=lifespan,
 )
+
+app.include_router(onboarding_router)
+app.include_router(auth_router)
 
 
 @app.get("/healthz", status_code=status.HTTP_200_OK, tags=["Health"])
