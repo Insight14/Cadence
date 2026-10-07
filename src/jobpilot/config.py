@@ -51,14 +51,19 @@ class Settings(BaseSettings):
     )
 
     # LLM & Embeddings
+    llm_provider: str = Field(
+        default="gemini",
+        description="LLM provider: 'gemini' or 'anthropic'",
+    )
+    gemini_api_key: str = Field(default="", description="Google Gemini API Key")
     anthropic_api_key: str = Field(default="", description="Anthropic API Key")
     llm_model: str = Field(
-        default="claude-3-5-haiku-20241022",
-        description="Default LLM model name",
+        default="gemini-2.0-flash",
+        description="Default LLM model name (e.g. gemini-2.0-flash or claude-3-5-haiku-20241022)",
     )
     embeddings_dimension: int = Field(
-        default=1536,
-        description="Vector dimension for embeddings",
+        default=768,
+        description="Vector dimension for embeddings (768 for Gemini, 1536 for OpenAI/Voyage)",
     )
     embeddings_api_key: str = Field(default="", description="Hosted Embeddings API Key")
 
