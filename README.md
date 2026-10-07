@@ -1,8 +1,8 @@
-# JobPilot 🛫
+# Cadence 🛫
 
 > Inbox-aware job-search assistant for students and new grads hunting internships and entry-level engineering roles.
 
-JobPilot connects to your Gmail (read-only), detects Online Assessments (OAs) and interview invitations using a fast two-stage filter (rules + LLM), manages reminders over Telegram with interactive recurrence, polls company career boards, and automates cold-email nudges.
+Cadence connects to your Gmail (read-only), detects Online Assessments (OAs) and interview invitations using a fast two-stage filter (rules + LLM), manages reminders over Telegram with interactive recurrence, polls company career boards, and automates cold-email nudges.
 
 ---
 
