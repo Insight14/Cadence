@@ -207,6 +207,19 @@
 
         <section class="card">
             <h2 class="section-title">2. Telegram Assistant Bot</h2>
+            {% if first_user_id %}
+            <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); padding: 1rem; border-radius: 10px; margin-bottom: 1.25rem;">
+                <p style="font-size: 0.95rem; margin-bottom: 0.5rem; color: var(--text-primary);">
+                    🤖 <strong>Link Your Telegram:</strong>
+                </p>
+                <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+                    Open your bot in Telegram and send this command:
+                </p>
+                <div style="background: #090d16; padding: 0.5rem 0.75rem; border-radius: 6px; font-family: monospace; font-size: 0.9rem; color: #38bdf8; display: inline-block;">
+                    /start {{ first_user_id }}
+                </div>
+            </div>
+            {% endif %}
             <ul class="feature-list">
                 <li class="feature-item">
                     <span class="feature-icon">🔁</span>

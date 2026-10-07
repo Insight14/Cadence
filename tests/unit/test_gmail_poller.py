@@ -12,7 +12,7 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from jobpilot.classify.llm_classifier import LLMClassifier
-from jobpilot.db.models import Base, Event, GmailAccount, ProcessedEmail, User
+from jobpilot.db.models import Base, Event, GmailAccount, ProcessedEmail, Reminder, User
 from jobpilot.gmail.poller import GmailPoller
 from jobpilot.llm.client import FakeLLMClient
 
@@ -28,6 +28,7 @@ async def in_memory_db_session() -> AsyncGenerator[AsyncSession, None]:
             cast(Table, GmailAccount.__table__),
             cast(Table, ProcessedEmail.__table__),
             cast(Table, Event.__table__),
+            cast(Table, Reminder.__table__),
         ]
         Base.metadata.create_all(bind=sync_conn, tables=target_tables)
 

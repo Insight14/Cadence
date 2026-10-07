@@ -24,11 +24,14 @@ async def onboarding_home(
 ) -> HTMLResponse:
     """Render the main onboarding dashboard."""
     connected_accounts: list[GmailAccount] = []
+    first_user_id: str | None = None
     db_connected = True
     try:
         accounts_query = select(GmailAccount).where(GmailAccount.status == "active")
         result = await db.scalars(accounts_query)
         connected_accounts = list(result.all())
+        if connected_accounts:
+            first_user_id = str(connected_accounts[0].user_id)
     except Exception:
         db_connected = False
 
@@ -37,6 +40,7 @@ async def onboarding_home(
         name="index.html",
         context={
             "connected_accounts": connected_accounts,
+            "first_user_id": first_user_id,
             "db_connected": db_connected,
         },
     )

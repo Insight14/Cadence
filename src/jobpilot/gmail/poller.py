@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from jobpilot.classify.llm_classifier import LLMClassifier
 from jobpilot.classify.rules import is_candidate_email
-from jobpilot.db.models import Event, GmailAccount, ProcessedEmail, utc_now
+from jobpilot.db.models import Event, GmailAccount, ProcessedEmail, Reminder, User, utc_now
 from jobpilot.gmail.client import build_gmail_service
 from jobpilot.gmail.parser import parse_email_metadata, parse_full_email
 
@@ -254,7 +254,7 @@ class GmailPoller:
             confidence=classification.confidence,
         )
 
-        # 5. If OA or Interview, create Event row
+        # 5. If OA or Interview, create Event and initial Reminder rows
         if classification.label in ("oa", "interview"):
             company_name = classification.company or parsed_full.sender_domain or "Unknown Company"
             event = Event(
@@ -274,8 +274,44 @@ class GmailPoller:
             )
             session.add(event)
             await session.flush()
+
+            # Create interactive reminder in awaiting_choice state
+            reminder = Reminder(
+                event_id=event.id,
+                user_id=user_id,
+                state="awaiting_choice",
+                send_count=0,
+            )
+            session.add(reminder)
+            await session.flush()
+
+            # Check if user has linked Telegram and is not paused
+            user = await session.get(User, user_id)
+            if user and user.telegram_chat_id and not user.paused:
+                from jobpilot.bot.app import get_telegram_app, send_telegram_alert
+                from jobpilot.bot.messages import build_initial_event_keyboard, format_event_text
+
+                app = get_telegram_app()
+                msg_text = format_event_text(
+                    event=event,
+                    now_utc=parsed_full.received_at,
+                    user_tz_name=user.timezone,
+                    is_recurring=False,
+                )
+                keyboard = build_initial_event_keyboard(reminder.id)
+                msg_id = await send_telegram_alert(
+                    bot=app.bot,
+                    chat_id=user.telegram_chat_id,
+                    text=msg_text,
+                    reply_markup=keyboard,
+                )
+                if msg_id:
+                    reminder.telegram_message_id = msg_id
+                    reminder.last_sent_at = utc_now()
+                    reminder.send_count = 1
+
             logger.info(
-                "Created %s event for user %s (company: %s, platform: %s)",
+                "Created %s event and reminder for user %s (company: %s, platform: %s)",
                 classification.label,
                 user_id,
                 company_name,
