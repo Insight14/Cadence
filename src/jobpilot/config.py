@@ -34,7 +34,7 @@ class Settings(BaseSettings):
 
     # Security / Encryption
     fernet_key: str = Field(
-        default="mock_fernet_key_must_be_32_urlsafe_b64_bytes=",
+        default="wU918b0Bq_PsA5XEnvI6FmqVGRqZRXl5r42SyTjkpT4=",
         description="Fernet symmetric key for encrypting refresh tokens at rest",
     )
 

@@ -52,10 +52,12 @@ jobs:
         env:
           DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/jobpilot_test
           DATABASE_SYNC_URL: postgresql://postgres:postgres@localhost:5432/jobpilot_test
-          FERNET_KEY: dXNlcl9zZWNyZXRfZmVybmV0X2tleV9mb3JfdGVzdGluZzEyMzQ=
+          FERNET_KEY: wU918b0Bq_PsA5XEnvI6FmqVGRqZRXl5r42SyTjkpT4=
           TELEGRAM_BOT_TOKEN: 1234567890:mock_telegram_bot_token_for_ci_test
           GOOGLE_CLIENT_ID: mock-client-id
           GOOGLE_CLIENT_SECRET: mock-client-secret
+          LLM_PROVIDER: gemini
+          GEMINI_API_KEY: mock-gemini-api-key
           ANTHROPIC_API_KEY: sk-ant-mock-key
         run: |
           pytest
