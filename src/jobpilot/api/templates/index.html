@@ -175,6 +175,11 @@
             <div class="logo">🛫</div>
             <h1>JobPilot</h1>
             <p class="subtitle">Inbox-aware job-search assistant for students & new grads</p>
+            {% if not db_connected %}
+            <div style="margin-top: 1rem; background: rgba(245, 158, 11, 0.1); border: 1px solid #f59e0b; padding: 0.6rem 1rem; border-radius: 8px; font-size: 0.85rem; color: #fbbf24; display: inline-block;">
+                ⚠️ <strong>Database Offline:</strong> PostgreSQL server is not running on <code>localhost:5432</code>. Configure your database URL in <code>.env</code>.
+            </div>
+            {% endif %}
         </header>
 
         <section class="card">

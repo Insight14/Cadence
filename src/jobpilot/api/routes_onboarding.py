@@ -23,14 +23,20 @@ async def onboarding_home(
     db: AsyncSession = Depends(get_db_session),
 ) -> HTMLResponse:
     """Render the main onboarding dashboard."""
-    accounts_query = select(GmailAccount).where(GmailAccount.status == "active")
-    result = await db.scalars(accounts_query)
-    connected_accounts = list(result.all())
+    connected_accounts: list[GmailAccount] = []
+    db_connected = True
+    try:
+        accounts_query = select(GmailAccount).where(GmailAccount.status == "active")
+        result = await db.scalars(accounts_query)
+        connected_accounts = list(result.all())
+    except Exception:
+        db_connected = False
 
     return templates.TemplateResponse(
         request=request,
         name="index.html",
         context={
             "connected_accounts": connected_accounts,
+            "db_connected": db_connected,
         },
     )

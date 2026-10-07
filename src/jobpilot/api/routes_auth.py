@@ -1,6 +1,5 @@
-"""Google OAuth 2.0 flow routes for Gmail read-only access."""
-
 import logging
+import os
 import uuid
 from pathlib import Path
 
@@ -18,6 +17,10 @@ from jobpilot.db.session import get_db_session
 from jobpilot.gmail.client import GMAIL_SCOPES
 from jobpilot.security.crypto import encrypt_token
 
+# Allow HTTP callback on localhost for local development
+os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
+os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth/google", tags=["Authentication"])
@@ -26,7 +29,11 @@ TEMPLATES_DIR = Path(__file__).parent / "templates"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 
-def get_oauth_flow(state: str | None = None) -> Flow:
+# In-memory store for PKCE code verifiers during OAuth flow
+_code_verifiers: dict[str, str] = {}
+
+
+def get_oauth_flow(state: str | None = None, code_verifier: str | None = None) -> Flow:
     """Create a Flow instance configured with client secrets and redirect URI."""
     settings = get_settings()
     client_config = {
@@ -42,6 +49,7 @@ def get_oauth_flow(state: str | None = None) -> Flow:
         client_config=client_config,
         scopes=GMAIL_SCOPES,
         state=state,
+        code_verifier=code_verifier,
     )
     flow.redirect_uri = settings.google_redirect_uri
     return flow
@@ -69,6 +77,10 @@ async def google_auth_start(
         include_granted_scopes="true",
     )
 
+    # Save PKCE code_verifier for token exchange in callback
+    if flow.code_verifier:
+        _code_verifiers[state] = flow.code_verifier
+
     return RedirectResponse(url=authorization_url, status_code=status.HTTP_302_FOUND)
 
 
@@ -80,11 +92,15 @@ async def google_auth_callback(
     db: AsyncSession = Depends(get_db_session),
 ) -> HTMLResponse:
     """Handle Google OAuth 2.0 callback, exchange code for refresh token, and persist account."""
-    flow = get_oauth_flow(state=state)
+    code_verifier = _code_verifiers.pop(state, None)
+    flow = get_oauth_flow(state=state, code_verifier=code_verifier)
 
     try:
-        # Fetch tokens
-        flow.fetch_token(code=code)
+        # Fetch tokens using PKCE code_verifier
+        if code_verifier:
+            flow.fetch_token(code=code, code_verifier=code_verifier)
+        else:
+            flow.fetch_token(code=code)
         credentials = flow.credentials
 
         if not credentials.refresh_token:
