@@ -1,0 +1,468 @@
+# Seed company catalog for monitored career boards
+companies:
+  # Autonomy & Rideshare
+  - name: "Waymo"
+    ats: "greenhouse"
+    board_token: "waymo"
+    domains:
+      - "waymo.com"
+      - "google.com"
+    tags:
+      - "autonomy"
+      - "robotics"
+      - "ai"
+      - "rideshare"
+    careers_url: "https://waymo.com/careers"
+
+  - name: "Uber"
+    ats: "greenhouse"
+    board_token: "uber"
+    domains:
+      - "uber.com"
+    tags:
+      - "rideshare"
+      - "fintech"
+      - "infra"
+    careers_url: "https://www.uber.com/careers"
+
+  - name: "Lyft"
+    ats: "greenhouse"
+    board_token: "lyft"
+    domains:
+      - "lyft.com"
+    tags:
+      - "rideshare"
+      - "autonomy"
+    careers_url: "https://www.lyft.com/careers"
+
+  - name: "Aurora"
+    ats: "greenhouse"
+    board_token: "aurorainnovation"
+    domains:
+      - "aurora.tech"
+    tags:
+      - "autonomy"
+      - "robotics"
+      - "ai"
+    careers_url: "https://aurora.tech/careers"
+
+  - name: "Zoox"
+    ats: "greenhouse"
+    board_token: "zoox"
+    domains:
+      - "zoox.com"
+      - "amazon.com"
+    tags:
+      - "autonomy"
+      - "robotics"
+      - "ev"
+    careers_url: "https://zoox.com/careers"
+
+  - name: "Motional"
+    ats: "greenhouse"
+    board_token: "motional"
+    domains:
+      - "motional.com"
+    tags:
+      - "autonomy"
+      - "robotics"
+    careers_url: "https://motional.com/careers"
+
+  - name: "Nuro"
+    ats: "greenhouse"
+    board_token: "nuro"
+    domains:
+      - "nuro.ai"
+    tags:
+      - "autonomy"
+      - "robotics"
+      - "ai"
+    careers_url: "https://www.nuro.ai/careers"
+
+  - name: "Cruise"
+    ats: "greenhouse"
+    board_token: "getcruise"
+    domains:
+      - "getcruise.com"
+    tags:
+      - "autonomy"
+      - "robotics"
+      - "ai"
+    careers_url: "https://www.getcruise.com/careers"
+
+  - name: "Rivian"
+    ats: "greenhouse"
+    board_token: "rivian"
+    domains:
+      - "rivian.com"
+    tags:
+      - "ev"
+      - "autonomy"
+      - "automotive"
+    careers_url: "https://rivian.com/careers"
+
+  - name: "TuSimple"
+    ats: "greenhouse"
+    board_token: "tusimple"
+    domains:
+      - "tusimple.ai"
+    tags:
+      - "autonomy"
+      - "trucking"
+      - "ai"
+    careers_url: "https://www.tusimple.com/careers"
+
+  # AI & Machine Learning
+  - name: "Anthropic"
+    ats: "ashby"
+    board_token: "anthropic"
+    domains:
+      - "anthropic.com"
+    tags:
+      - "ai"
+      - "llm"
+      - "safety"
+      - "infra"
+    careers_url: "https://www.anthropic.com/careers"
+
+  - name: "OpenAI"
+    ats: "greenhouse"
+    board_token: "openai"
+    domains:
+      - "openai.com"
+    tags:
+      - "ai"
+      - "llm"
+      - "research"
+    careers_url: "https://openai.com/careers"
+
+  - name: "Scale AI"
+    ats: "greenhouse"
+    board_token: "scaleai"
+    domains:
+      - "scale.com"
+      - "scaleai.com"
+    tags:
+      - "ai"
+      - "data"
+      - "infra"
+    careers_url: "https://scale.com/careers"
+
+  - name: "Perplexity"
+    ats: "ashby"
+    board_token: "perplexity"
+    domains:
+      - "perplexity.ai"
+    tags:
+      - "ai"
+      - "search"
+      - "llm"
+    careers_url: "https://www.perplexity.ai/careers"
+
+  - name: "Cohere"
+    ats: "ashby"
+    board_token: "cohere"
+    domains:
+      - "cohere.com"
+      - "cohere.ai"
+    tags:
+      - "ai"
+      - "llm"
+      - "nlp"
+    careers_url: "https://cohere.com/careers"
+
+  - name: "Mistral AI"
+    ats: "ashby"
+    board_token: "mistral"
+    domains:
+      - "mistral.ai"
+    tags:
+      - "ai"
+      - "llm"
+      - "open-source"
+    careers_url: "https://mistral.ai/careers"
+
+  - name: "Hugging Face"
+    ats: "ashby"
+    board_token: "huggingface"
+    domains:
+      - "huggingface.co"
+    tags:
+      - "ai"
+      - "open-source"
+      - "nlp"
+    careers_url: "https://huggingface.co/careers"
+
+  # Developer Tools & Cloud Infrastructure
+  - name: "Stripe"
+    ats: "greenhouse"
+    board_token: "stripe"
+    domains:
+      - "stripe.com"
+    tags:
+      - "fintech"
+      - "payments"
+      - "infra"
+    careers_url: "https://stripe.com/jobs"
+
+  - name: "Figma"
+    ats: "greenhouse"
+    board_token: "figma"
+    domains:
+      - "figma.com"
+    tags:
+      - "design"
+      - "frontend"
+      - "infra"
+      - "collaboration"
+    careers_url: "https://www.figma.com/careers"
+
+  - name: "Notion"
+    ats: "ashby"
+    board_token: "notion"
+    domains:
+      - "makenotion.com"
+      - "notion.so"
+    tags:
+      - "productivity"
+      - "frontend"
+      - "ai"
+    careers_url: "https://www.notion.so/careers"
+
+  - name: "Databricks"
+    ats: "greenhouse"
+    board_token: "databricks"
+    domains:
+      - "databricks.com"
+    tags:
+      - "data"
+      - "ai"
+      - "cloud"
+      - "infra"
+    careers_url: "https://www.databricks.com/company/careers"
+
+  - name: "Cloudflare"
+    ats: "greenhouse"
+    board_token: "cloudflare"
+    domains:
+      - "cloudflare.com"
+    tags:
+      - "security"
+      - "networking"
+      - "infra"
+      - "cdn"
+    careers_url: "https://www.cloudflare.com/careers"
+
+  - name: "GitHub"
+    ats: "greenhouse"
+    board_token: "github"
+    domains:
+      - "github.com"
+    tags:
+      - "devtools"
+      - "git"
+      - "open-source"
+    careers_url: "https://github.com/about/careers"
+
+  - name: "Datadog"
+    ats: "greenhouse"
+    board_token: "datadog"
+    domains:
+      - "datadoghq.com"
+    tags:
+      - "observability"
+      - "monitoring"
+      - "cloud"
+    careers_url: "https://www.datadoghq.com/careers"
+
+  - name: "Airtable"
+    ats: "greenhouse"
+    board_token: "airtable"
+    domains:
+      - "airtable.com"
+    tags:
+      - "database"
+      - "nocode"
+      - "collaboration"
+    careers_url: "https://airtable.com/careers"
+
+  - name: "Roblox"
+    ats: "greenhouse"
+    board_token: "roblox"
+    domains:
+      - "roblox.com"
+    tags:
+      - "gaming"
+      - "metaverse"
+      - "infra"
+    careers_url: "https://careers.roblox.com"
+
+  - name: "Discord"
+    ats: "greenhouse"
+    board_token: "discord"
+    domains:
+      - "discordapp.com"
+      - "discord.com"
+    tags:
+      - "communication"
+      - "voice"
+      - "infra"
+    careers_url: "https://discord.com/careers"
+
+  - name: "Palantir"
+    ats: "greenhouse"
+    board_token: "palantir"
+    domains:
+      - "palantir.com"
+    tags:
+      - "data"
+      - "enterprise"
+      - "govtech"
+    careers_url: "https://www.palantir.com/careers"
+
+  - name: "Canva"
+    ats: "greenhouse"
+    board_token: "canva"
+    domains:
+      - "canva.com"
+    tags:
+      - "design"
+      - "graphics"
+      - "frontend"
+    careers_url: "https://www.canva.com/careers"
+
+  - name: "Duolingo"
+    ats: "greenhouse"
+    board_token: "duolingo"
+    domains:
+      - "duolingo.com"
+    tags:
+      - "edtech"
+      - "mobile"
+      - "ai"
+    careers_url: "https://careers.duolingo.com"
+
+  - name: "Pinterest"
+    ats: "greenhouse"
+    board_token: "pinterest"
+    domains:
+      - "pinterest.com"
+    tags:
+      - "social"
+      - "search"
+      - "computer-vision"
+    careers_url: "https://www.pinterestcareers.com"
+
+  - name: "Snap"
+    ats: "greenhouse"
+    board_token: "snap"
+    domains:
+      - "snapchat.com"
+      - "snap.com"
+    tags:
+      - "ar"
+      - "social"
+      - "camera"
+    careers_url: "https://careers.snap.com"
+
+  # Fintech & Trading
+  - name: "Coinbase"
+    ats: "greenhouse"
+    board_token: "coinbase"
+    domains:
+      - "coinbase.com"
+    tags:
+      - "crypto"
+      - "fintech"
+      - "web3"
+    careers_url: "https://www.coinbase.com/careers"
+
+  - name: "Plaid"
+    ats: "greenhouse"
+    board_token: "plaid"
+    domains:
+      - "plaid.com"
+    tags:
+      - "fintech"
+      - "banking"
+      - "api"
+    careers_url: "https://plaid.com/careers"
+
+  - name: "Brex"
+    ats: "greenhouse"
+    board_token: "brex"
+    domains:
+      - "brex.com"
+    tags:
+      - "fintech"
+      - "banking"
+      - "spend"
+    careers_url: "https://www.brex.com/careers"
+
+  - name: "Ramp"
+    ats: "ashby"
+    board_token: "ramp"
+    domains:
+      - "ramp.com"
+    tags:
+      - "fintech"
+      - "spend"
+      - "automation"
+    careers_url: "https://ramp.com/careers"
+
+  - name: "Robinhood"
+    ats: "greenhouse"
+    board_token: "robinhood"
+    domains:
+      - "robinhood.com"
+    tags:
+      - "fintech"
+      - "trading"
+      - "brokerage"
+    careers_url: "https://robinhood.com/careers"
+
+  - name: "Affirm"
+    ats: "greenhouse"
+    board_token: "affirm"
+    domains:
+      - "affirm.com"
+    tags:
+      - "fintech"
+      - "bnpl"
+      - "payments"
+    careers_url: "https://www.affirm.com/careers"
+
+  # Lever Boards
+  - name: "Spotify"
+    ats: "lever"
+    board_token: "spotify"
+    domains:
+      - "spotify.com"
+    tags:
+      - "music"
+      - "streaming"
+      - "audio"
+      - "infra"
+    careers_url: "https://www.lifeatspotify.com"
+
+  - name: "Yelp"
+    ats: "lever"
+    board_token: "yelp"
+    domains:
+      - "yelp.com"
+    tags:
+      - "consumer"
+      - "local"
+      - "reviews"
+    careers_url: "https://www.yelp.careers"
+
+  - name: "Atlassian"
+    ats: "lever"
+    board_token: "atlassian"
+    domains:
+      - "atlassian.com"
+    tags:
+      - "devtools"
+      - "productivity"
+      - "enterprise"
+    careers_url: "https://www.atlassian.com/company/careers"

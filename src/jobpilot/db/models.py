@@ -7,6 +7,7 @@ from typing import Any
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
     ARRAY,
+    JSON,
     BigInteger,
     Boolean,
     DateTime,
@@ -16,10 +17,40 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    TypeDecorator,
     UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+
+
+class StringArray(TypeDecorator[list[str]]):
+    """PostgreSQL ARRAY(String) with SQLite JSON fallback for testing."""
+
+    impl = ARRAY(String)
+    cache_ok = True
+
+    def load_dialect_impl(self, dialect: Any) -> Any:
+        if dialect.name == "postgresql":
+            return dialect.type_descriptor(ARRAY(String))
+        return dialect.type_descriptor(JSON())
+
+    def process_bind_param(self, value: list[str] | None, dialect: Any) -> Any:
+        return value
+
+    def process_result_value(self, value: Any, dialect: Any) -> list[str]:
+        if value is None:
+            return []
+        if isinstance(value, list):
+            return value
+        return list(value)
+
+
+@compiles(Vector, "sqlite")
+def _compile_vector_sqlite(type_: Any, compiler: Any, **kw: Any) -> str:
+    """Render pgvector Vector as BLOB for SQLite testing support."""
+    return "BLOB"
 
 
 def utc_now() -> datetime:
@@ -379,12 +410,12 @@ class Company(Base, TimestampMixin):
         nullable=False,
     )
     domains: Mapped[list[str]] = mapped_column(
-        ARRAY(String(255)),
+        StringArray,
         default=list,
         nullable=False,
     )
     tags: Mapped[list[str]] = mapped_column(
-        ARRAY(String(128)),
+        StringArray,
         default=list,
         nullable=False,
     )

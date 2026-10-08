@@ -13,6 +13,7 @@ from jobpilot.config import get_settings
 from jobpilot.db.models import GmailAccount
 from jobpilot.db.session import async_session_factory
 from jobpilot.gmail.poller import GmailPoller
+from jobpilot.jobs.poller import JobBoardPoller
 from jobpilot.reminders.scheduler import ReminderScheduler
 
 logger = logging.getLogger(__name__)
@@ -40,6 +41,15 @@ async def run_reminder_tick_cycle(scheduler: ReminderScheduler) -> None:
             await scheduler.run_tick(session)
     except Exception as exc:
         logger.exception("Error during Reminder tick cycle: %s", exc)
+
+
+async def run_job_board_poll_cycle(poller: JobBoardPoller) -> None:
+    """Run one career board polling and change-detection cycle."""
+    try:
+        async with await async_session_factory() as session:
+            await poller.poll_all_companies(session)
+    except Exception as exc:
+        logger.exception("Error during Job Board polling cycle: %s", exc)
 
 
 async def run_worker() -> None:
@@ -73,10 +83,12 @@ async def run_worker() -> None:
 
     gmail_poller = GmailPoller()
     reminder_scheduler = ReminderScheduler(bot=bot_app.bot if bot_running else None)
+    job_poller = JobBoardPoller()
 
     # Main scheduler loop
     last_gmail_poll = 0.0
     last_reminder_tick = 0.0
+    last_job_board_poll = 0.0
 
     logger.info("Worker loops initialized. Ready to process events.")
 
@@ -93,6 +105,11 @@ async def run_worker() -> None:
             if loop_now - last_reminder_tick >= settings.reminder_tick_interval_seconds:
                 asyncio.create_task(run_reminder_tick_cycle(reminder_scheduler))
                 last_reminder_tick = loop_now
+
+            # Trigger Job Board poller (runs every 300s default)
+            if loop_now - last_job_board_poll >= settings.job_board_poll_interval_seconds:
+                asyncio.create_task(run_job_board_poll_cycle(job_poller))
+                last_job_board_poll = loop_now
 
             await asyncio.sleep(1)
 

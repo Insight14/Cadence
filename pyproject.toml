@@ -25,6 +25,7 @@ dependencies = [
     "google-auth-oauthlib>=1.2.1",
     "anthropic>=0.40.0",
     "google-genai>=1.0.0",
+    "pyyaml>=6.0.2",
 ]
 
 [project.optional-dependencies]
@@ -36,6 +37,7 @@ dev = [
     "mypy>=1.13.0",
     "pre-commit>=4.0.0",
     "types-requests>=2.32.0",
+    "types-PyYAML>=6.0.12",
     "aiosqlite>=0.20.0",
 ]
 
