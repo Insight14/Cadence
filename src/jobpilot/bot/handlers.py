@@ -6,14 +6,18 @@ import uuid
 
 import httpx
 from sqlalchemy import delete, select
-from telegram import Message, Update
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Message, Update
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
+from jobpilot.applications.drafter import ColdEmailDrafter
 from jobpilot.db.models import (
+    Application,
     Company,
     Event,
     GmailAccount,
+    JobPosting,
+    Outreach,
     Reminder,
     ResumeProfile,
     User,
@@ -26,6 +30,7 @@ from jobpilot.reminders.schedule_math import (
     get_user_zone,
     validate_timezone,
 )
+from jobpilot.resume.extractor import StructuredResumeProfile
 from jobpilot.security.crypto import decrypt_token
 
 logger = logging.getLogger(__name__)
@@ -67,8 +72,8 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                     f"👤 **Email:** `{linked_user.email or 'Connected'}`\n"
                     f"🕒 **Timezone:** `{linked_user.timezone}`\n"
                     f"(change with `/timezone <IANA>`)\n\n"
-                    f"You will now receive instant notifications when new Online Assessments "
-                    f"or matching job postings drop!",
+                    f"You will now receive instant notifications when new Online Assessments, "
+                    f"job matches, and application nudges drop!",
                     parse_mode=ParseMode.MARKDOWN,
                 )
                 return
@@ -80,6 +85,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                 f"🕒 Current timezone: `{user.timezone}`\n\n"
                 f"**Available Commands:**\n"
                 f"• `/matches` — View your top matching open jobs right now\n"
+                f"• `/applications` — Track all active job applications & outreach\n"
                 f"• `/mute <company>` — Mute job alerts for a specific company\n"
                 f"• `/unmute <company>` — Unmute job alerts for a company\n"
                 f"• `/timezone <IANA>` — Update your timezone (e.g. `America/New_York`)\n"
@@ -411,8 +417,78 @@ async def delete_my_data_command(update: Update, context: ContextTypes.DEFAULT_T
         )
 
 
+async def applications_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle /applications command: list tracked applications & outreach state."""
+    if not update.effective_chat or not update.message:
+        return
+
+    chat_id = update.effective_chat.id
+    async with await async_session_factory() as db:
+        user = await db.scalar(select(User).where(User.telegram_chat_id == chat_id))
+        if not user:
+            await update.message.reply_text("❌ Account not linked. Use `/link <user_id>` first.")
+            return
+
+        stmt = (
+            select(Application)
+            .where(Application.user_id == user.id)
+            .order_by(Application.applied_at.desc().nullslast())
+        )
+        apps = list((await db.scalars(stmt)).all())
+
+        if not apps:
+            await update.message.reply_text(
+                "📁 **No tracked job applications yet.**\n\n"
+                "When you submit job applications, JobPilot automatically tracks confirmations "
+                "and helps you with follow-ups and cold outreach nudges.",
+                parse_mode=ParseMode.MARKDOWN,
+            )
+            return
+
+        lines = [f"📊 **Your Tracked Applications ({len(apps)}):**\n"]
+        for idx, app in enumerate(apps, 1):
+            company = await db.get(Company, app.company_id)
+            comp_name = company.name if company else "Unknown Company"
+
+            role_str = "Software Engineering"
+            if app.job_posting_id:
+                job = await db.get(JobPosting, app.job_posting_id)
+                if job:
+                    role_str = job.title
+
+            outreach_stmt = (
+                select(Outreach)
+                .where(Outreach.application_id == app.id)
+                .order_by(Outreach.created_at.desc())
+            )
+            outreaches = list((await db.scalars(outreach_stmt)).all())
+
+            if any(o.kind == "cold_email_detected" for o in outreaches):
+                outreach_status = "✉️ Cold Email Sent"
+            elif any(o.kind in ("nudge_sent", "draft_generated") for o in outreaches):
+                outreach_status = "📝 Nudge Sent"
+            else:
+                outreach_status = "⏳ No Outreach Logged"
+
+            applied_date = app.applied_at.strftime("%b %d, %Y") if app.applied_at else "Recently"
+            status_badge = app.status.upper()
+
+            lines.append(
+                f"**{idx}. {comp_name}** — `{status_badge}`\n"
+                f"💼 Role: {role_str}\n"
+                f"📅 Applied: {applied_date}\n"
+                f"📡 Outreach: {outreach_status}\n"
+            )
+
+        await update.message.reply_text(
+            "\n".join(lines),
+            parse_mode=ParseMode.MARKDOWN,
+            disable_web_page_preview=True,
+        )
+
+
 async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle inline button callbacks (recur:<id>, dismiss:<id>, done:<id>, mute:<company_id>)."""
+    """Handle inline button callbacks (recur, dismiss, done, mute, draft, sent, snooze)."""
     query = update.callback_query
     if not query or not query.data or not update.effective_chat:
         return
@@ -457,6 +533,122 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
             mute_msg = f"{orig_text}\n\n🔕 **Muted {company.name}.** (Alerts silenced)"
             await query.edit_message_text(
                 text=mute_msg,
+                parse_mode=ParseMode.MARKDOWN,
+            )
+            return
+
+        if action == "draft":
+            try:
+                app_id = uuid.UUID(target_id_str)
+            except ValueError:
+                return
+
+            application = await db.get(Application, app_id)
+            if not application or application.user_id != user.id:
+                return
+
+            company = await db.get(Company, application.company_id)
+            comp_name = company.name if company else "Company"
+
+            resume_prof = await db.scalar(
+                select(ResumeProfile).where(ResumeProfile.user_id == user.id)
+            )
+            structured_profile = None
+            if resume_prof and resume_prof.structured_json:
+                structured_profile = StructuredResumeProfile.model_validate(
+                    resume_prof.structured_json
+                )
+
+            role_title = None
+            if application.job_posting_id:
+                job = await db.get(JobPosting, application.job_posting_id)
+                if job:
+                    role_title = job.title
+
+            drafter = ColdEmailDrafter()
+            draft = await drafter.draft(
+                candidate_profile=structured_profile,
+                company_name=comp_name,
+                role_title=role_title or "Software Engineering Intern",
+            )
+
+            outreach = Outreach(
+                application_id=application.id,
+                kind="draft_generated",
+                contact_domain=company.domains[0] if company and company.domains else None,
+            )
+            db.add(outreach)
+            await db.commit()
+
+            draft_text = (
+                f"{orig_text}\n\n"
+                f"📝 **Cold Outreach Email Draft:**\n"
+                f"━━━━━━━━━━━━━━━━━━━━\n"
+                f"**Subject:** {draft.subject}\n\n"
+                f"{draft.body}\n"
+                f"━━━━━━━━━━━━━━━━━━━━\n"
+                f"💡 _Tip: Personalize with a recruiter's name and send from your linked email!_"
+            )
+
+            keyboard = InlineKeyboardMarkup(
+                [
+                    [
+                        InlineKeyboardButton(
+                            "✅ Mark as Sent",
+                            callback_data=f"sent:{application.id}",
+                        ),
+                    ],
+                ]
+            )
+
+            await query.edit_message_text(
+                text=draft_text,
+                parse_mode=ParseMode.MARKDOWN,
+                reply_markup=keyboard,
+            )
+            return
+
+        if action == "sent":
+            try:
+                app_id = uuid.UUID(target_id_str)
+            except ValueError:
+                return
+
+            application = await db.get(Application, app_id)
+            if not application or application.user_id != user.id:
+                return
+
+            company = await db.get(Company, application.company_id)
+            outreach = Outreach(
+                application_id=application.id,
+                kind="cold_email_detected",
+                contact_domain=company.domains[0] if company and company.domains else None,
+            )
+            db.add(outreach)
+            await db.commit()
+
+            sent_msg = (
+                f"{orig_text}\n\n"
+                f"✅ **Marked as Sent!** Outreach logged in your application tracker."
+            )
+            await query.edit_message_text(
+                text=sent_msg,
+                parse_mode=ParseMode.MARKDOWN,
+            )
+            return
+
+        if action == "snooze":
+            try:
+                app_id = uuid.UUID(target_id_str)
+            except ValueError:
+                return
+
+            snooze_msg = (
+                f"{orig_text}\n\n"
+                f"⏰ **Nudge snoozed.** You can review applications anytime with `/applications`."
+            )
+            await query.edit_message_text(
+                text=snooze_msg,
                 parse_mode=ParseMode.MARKDOWN,
             )
             return

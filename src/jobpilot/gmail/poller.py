@@ -318,6 +318,25 @@ class GmailPoller:
                 classification.platform,
             )
 
+        elif classification.label == "application_confirmation":
+            from jobpilot.applications.tracker import ApplicationTracker
+
+            tracker = ApplicationTracker()
+            await tracker.process_confirmation_email(
+                session=session,
+                user_id=user_id,
+                proc_email=proc_email,
+                company_name=classification.company,
+                role_title=classification.role_title,
+                gmail_service=service,
+            )
+            logger.info(
+                "Processed application confirmation for user %s (company: %s, role: %s)",
+                user_id,
+                classification.company,
+                classification.role_title,
+            )
+
         return True
 
     async def _persist_email_record(
