@@ -19,6 +19,9 @@ class LLMClient(ABC):
         pass
 
 
+BaseLLMClient = LLMClient
+
+
 class FakeLLMClient(LLMClient):
     """Mock LLM client for deterministic unit tests and offline evals."""
 

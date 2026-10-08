@@ -16,10 +16,13 @@ from jobpilot.bot.handlers import (
     delete_my_data_command,
     handle_callback_query,
     link_command,
+    matches_command,
+    mute_command,
     pause_command,
     resume_command,
     start_command,
     timezone_command,
+    unmute_command,
 )
 from jobpilot.config import get_settings
 
@@ -41,6 +44,9 @@ def get_telegram_app() -> Application[Any, Any, Any, Any, Any, Any]:
         # Register commands
         _bot_app.add_handler(CommandHandler("start", start_command))
         _bot_app.add_handler(CommandHandler("link", link_command))
+        _bot_app.add_handler(CommandHandler("matches", matches_command))
+        _bot_app.add_handler(CommandHandler("mute", mute_command))
+        _bot_app.add_handler(CommandHandler("unmute", unmute_command))
         _bot_app.add_handler(CommandHandler("timezone", timezone_command))
         _bot_app.add_handler(CommandHandler("pause", pause_command))
         _bot_app.add_handler(CommandHandler("resume", resume_command))

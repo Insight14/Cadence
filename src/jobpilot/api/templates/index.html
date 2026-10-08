@@ -17,6 +17,9 @@
             --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
             --success-color: #34d399;
+            --tag-bg: rgba(56, 189, 248, 0.12);
+            --tag-border: rgba(56, 189, 248, 0.25);
+            --tag-text: #7dd3fc;
         }
 
         * {
@@ -38,7 +41,7 @@
 
         .container {
             width: 100%;
-            max-width: 680px;
+            max-width: 720px;
         }
 
         .header {
@@ -63,7 +66,7 @@
 
         .subtitle {
             color: var(--text-secondary);
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             line-height: 1.5;
         }
 
@@ -94,8 +97,8 @@
             color: #090d16;
             text-decoration: none;
             font-weight: 600;
-            font-size: 1rem;
-            padding: 0.85rem 1.75rem;
+            font-size: 0.95rem;
+            padding: 0.8rem 1.5rem;
             border-radius: 10px;
             border: none;
             cursor: pointer;
@@ -161,11 +164,78 @@
             font-weight: 500;
         }
 
+        /* Upload area styling */
+        .dropzone {
+            border: 2px dashed var(--card-border);
+            border-radius: 12px;
+            padding: 2rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s, background-color 0.2s;
+            background: rgba(255, 255, 255, 0.01);
+            margin-bottom: 1rem;
+        }
+
+        .dropzone:hover, .dropzone.dragover {
+            border-color: var(--accent-color);
+            background: rgba(56, 189, 248, 0.04);
+        }
+
+        .dropzone-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .dropzone-text {
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .dropzone-hint {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .tag-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-top: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .tag-chip {
+            background: var(--tag-bg);
+            border: 1px solid var(--tag-border);
+            color: var(--tag-text);
+            padding: 0.25rem 0.65rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .profile-section-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin-top: 0.8rem;
+        }
+
         .privacy-note {
             text-align: center;
             color: var(--text-secondary);
             font-size: 0.85rem;
             margin-top: 1.5rem;
+        }
+
+        #upload-status {
+            margin-top: 0.75rem;
+            font-size: 0.85rem;
+            display: none;
         }
     </style>
 </head>
@@ -177,11 +247,12 @@
             <p class="subtitle">Inbox-aware job-search assistant for students & new grads</p>
             {% if not db_connected %}
             <div style="margin-top: 1rem; background: rgba(245, 158, 11, 0.1); border: 1px solid #f59e0b; padding: 0.6rem 1rem; border-radius: 8px; font-size: 0.85rem; color: #fbbf24; display: inline-block;">
-                ⚠️ <strong>Database Offline:</strong> PostgreSQL server is not running on <code>localhost:5432</code>. Configure your database URL in <code>.env</code>.
+                ⚠️ <strong>Database Offline:</strong> PostgreSQL server is not connected. Configure your database URL in <code>.env</code>.
             </div>
             {% endif %}
         </header>
 
+        <!-- 1. Gmail Connect -->
         <section class="card">
             <h2 class="section-title">1. Connect Gmail</h2>
             <p style="color: var(--text-secondary); margin-bottom: 1.25rem; font-size: 0.95rem;">
@@ -205,8 +276,78 @@
             {% endif %}
         </section>
 
+        <!-- 2. Resume Matching Profile -->
+        <section class="card" id="resume-section">
+            <h2 class="section-title">2. Resume & Matching Profile</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1.25rem; font-size: 0.95rem;">
+                Upload your resume (PDF, DOCX, or TXT). JobPilot parses your skills & domain preferences strictly in-memory to match career board postings in real time.
+            </p>
+
+            <form id="resume-upload-form" enctype="multipart/form-data">
+                {% if first_user_id %}
+                <input type="hidden" name="user_id" id="profile-user-id" value="{{ first_user_id }}">
+                {% endif %}
+                <div class="dropzone" id="dropzone" onclick="document.getElementById('resume-file-input').click()">
+                    <div class="dropzone-icon">📄</div>
+                    <div class="dropzone-text">Click to upload or drag and drop your resume</div>
+                    <div class="dropzone-hint">PDF, DOCX, or TXT (up to 10MB) • Processed in memory only</div>
+                    <input type="file" id="resume-file-input" name="file" accept=".pdf,.docx,.txt" style="display: none;">
+                </div>
+            </form>
+
+            <div id="upload-status"></div>
+
+            <div id="profile-card" style="{% if not resume_profile %}display: none;{% endif %} margin-top: 1.5rem; border-top: 1px solid var(--card-border); padding-top: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--text-primary);">Candidate Profile</h3>
+                    <span class="status-badge">✓ Active Profile</span>
+                </div>
+
+                {% if resume_profile %}
+                {% if resume_profile.summary %}
+                <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.4; margin-bottom: 0.75rem;" id="profile-summary">
+                    {{ resume_profile.summary }}
+                </p>
+                {% endif %}
+
+                <div class="profile-section-title">Target Roles</div>
+                <div class="tag-group" id="profile-roles">
+                    {% for role in resume_profile.target_roles %}
+                    <span class="tag-chip">{{ role }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="profile-section-title">Extracted Skills</div>
+                <div class="tag-group" id="profile-skills">
+                    {% for skill in resume_profile.skills %}
+                    <span class="tag-chip">{{ skill }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="profile-section-title">Domain Interests</div>
+                <div class="tag-group" id="profile-domains">
+                    {% for domain in resume_profile.domains %}
+                    <span class="tag-chip">{{ domain }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            {% if watched_companies %}
+            <div style="margin-top: 1.25rem;">
+                <h3 style="font-size: 0.9rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Auto-Watched Companies (Matching Tags)</h3>
+                <div class="tag-group" style="margin-top: 0.5rem;">
+                    {% for comp in watched_companies %}
+                    <span class="tag-chip" style="background: rgba(52, 211, 153, 0.1); border-color: rgba(52, 211, 153, 0.25); color: #34d399;">🏢 {{ comp.name }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </section>
+
+        <!-- 3. Telegram Assistant -->
         <section class="card">
-            <h2 class="section-title">2. Telegram Assistant Bot</h2>
+            <h2 class="section-title">3. Telegram Assistant Bot</h2>
             {% if first_user_id %}
             <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); padding: 1rem; border-radius: 10px; margin-bottom: 1.25rem;">
                 <p style="font-size: 0.95rem; margin-bottom: 0.5rem; color: var(--text-primary);">
@@ -222,23 +363,120 @@
             {% endif %}
             <ul class="feature-list">
                 <li class="feature-item">
+                    <span class="feature-icon">🎯</span>
+                    <span><strong>Real-Time Job Alerts:</strong> Get notified instantly when matching student roles drop with affinity scores.</span>
+                </li>
+                <li class="feature-item">
                     <span class="feature-icon">🔁</span>
                     <span><strong>Interactive OA Reminders:</strong> Tap Recur to get daily alerts at 10:00 & 19:00 in your timezone.</span>
                 </li>
                 <li class="feature-item">
-                    <span class="feature-icon">⚡</span>
-                    <span><strong>Fast Career Board Alerts:</strong> High-frequency diffing on Greenhouse, Lever, and Ashby boards.</span>
-                </li>
-                <li class="feature-item">
-                    <span class="feature-icon">✉️</span>
-                    <span><strong>Cold Outreach Nudges:</strong> Automatic recruiter links and LLM-drafted emails when you apply.</span>
+                    <span class="feature-icon">🔕</span>
+                    <span><strong>Mute & Watch Controls:</strong> Fine-tune company watches and notifications directly from Telegram.</span>
                 </li>
             </ul>
         </section>
 
         <p class="privacy-note">
-            🔒 <strong>Privacy Guaranteed:</strong> Email bodies and subjects are processed in memory and never persisted or logged.
+            🔒 <strong>Privacy Guaranteed:</strong> Email bodies and uploaded resumes are processed strictly in memory and never saved to disk or logged.
         </p>
     </div>
+
+    <script>
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('resume-file-input');
+        const uploadStatus = document.getElementById('upload-status');
+        const profileCard = document.getElementById('profile-card');
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropzone.classList.add('dragover');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropzone.classList.remove('dragover');
+            });
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            if (dt.files && dt.files.length > 0) {
+                fileInput.files = dt.files;
+                handleUpload(dt.files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (fileInput.files && fileInput.files.length > 0) {
+                handleUpload(fileInput.files[0]);
+            }
+        });
+
+        async function handleUpload(file) {
+            uploadStatus.style.display = 'block';
+            uploadStatus.style.color = 'var(--accent-color)';
+            uploadStatus.innerHTML = `⏳ Parsing <strong>${file.name}</strong> and extracting candidate profile...`;
+
+            const formData = new FormData();
+            formData.append('file', file);
+            const userIdInput = document.getElementById('profile-user-id');
+            if (userIdInput && userIdInput.value) {
+                formData.append('user_id', userIdInput.value);
+            }
+
+            try {
+                const response = await fetch('/resume/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Upload failed');
+                }
+
+                uploadStatus.style.color = 'var(--success-color)';
+                uploadStatus.innerHTML = `✅ Successfully extracted profile from <strong>${file.name}</strong>!`;
+
+                // Render structured profile
+                const p = data.profile;
+                let html = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--text-primary);">Candidate Profile</h3>
+                        <span class="status-badge">✓ Active Profile</span>
+                    </div>
+                `;
+                if (p.summary) {
+                    html += `<p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.4; margin-bottom: 0.75rem;">${p.summary}</p>`;
+                }
+                if (p.target_roles && p.target_roles.length) {
+                    html += `<div class="profile-section-title">Target Roles</div><div class="tag-group">` +
+                        p.target_roles.map(r => `<span class="tag-chip">${r}</span>`).join('') + `</div>`;
+                }
+                if (p.skills && p.skills.length) {
+                    html += `<div class="profile-section-title">Extracted Skills</div><div class="tag-group">` +
+                        p.skills.map(s => `<span class="tag-chip">${s}</span>`).join('') + `</div>`;
+                }
+                if (p.domains && p.domains.length) {
+                    html += `<div class="profile-section-title">Domain Interests</div><div class="tag-group">` +
+                        p.domains.map(d => `<span class="tag-chip">${d}</span>`).join('') + `</div>`;
+                }
+
+                profileCard.innerHTML = html;
+                profileCard.style.display = 'block';
+
+            } catch (err) {
+                uploadStatus.style.color = '#ef4444';
+                uploadStatus.innerHTML = `❌ Error: ${err.message}`;
+            }
+        }
+    </script>
 </body>
 </html>
+

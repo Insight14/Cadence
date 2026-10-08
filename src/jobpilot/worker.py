@@ -10,9 +10,10 @@ from sqlalchemy import select
 from jobpilot.api.main import configure_logging
 from jobpilot.bot.app import get_telegram_app
 from jobpilot.config import get_settings
-from jobpilot.db.models import GmailAccount
+from jobpilot.db.models import GmailAccount, ResumeProfile, User
 from jobpilot.db.session import async_session_factory
 from jobpilot.gmail.poller import GmailPoller
+from jobpilot.jobs.matcher import JobMatcher
 from jobpilot.jobs.poller import JobBoardPoller
 from jobpilot.reminders.scheduler import ReminderScheduler
 
@@ -43,11 +44,43 @@ async def run_reminder_tick_cycle(scheduler: ReminderScheduler) -> None:
         logger.exception("Error during Reminder tick cycle: %s", exc)
 
 
-async def run_job_board_poll_cycle(poller: JobBoardPoller) -> None:
-    """Run one career board polling and change-detection cycle."""
+async def run_job_matching_cycle(matcher: JobMatcher) -> None:
+    """Evaluate open jobs against candidate resume profiles and dispatch Telegram alerts."""
+    try:
+        async with await async_session_factory() as session:
+            stmt = (
+                select(User)
+                .join(ResumeProfile, ResumeProfile.user_id == User.id)
+                .where(
+                    User.telegram_chat_id.is_not(None),
+                    User.paused.is_(False),
+                )
+            )
+            active_candidates = list((await session.scalars(stmt)).all())
+            if not active_candidates:
+                return
+
+            for candidate in active_candidates:
+                matches = await matcher.find_matches_for_user(
+                    session,
+                    candidate.id,
+                    min_score=0.60,
+                    max_matches=5,
+                )
+                if matches:
+                    await matcher.dispatch_job_alerts_for_user(session, candidate, matches)
+    except Exception as exc:
+        logger.exception("Error during Job Matching cycle: %s", exc)
+
+
+async def run_job_board_poll_cycle(poller: JobBoardPoller, matcher: JobMatcher) -> None:
+    """Run career board polling and immediately trigger matching for candidate alerts."""
     try:
         async with await async_session_factory() as session:
             await poller.poll_all_companies(session)
+
+        # Run match pass to alert users of any newly discovered roles
+        await run_job_matching_cycle(matcher)
     except Exception as exc:
         logger.exception("Error during Job Board polling cycle: %s", exc)
 
@@ -84,6 +117,7 @@ async def run_worker() -> None:
     gmail_poller = GmailPoller()
     reminder_scheduler = ReminderScheduler(bot=bot_app.bot if bot_running else None)
     job_poller = JobBoardPoller()
+    job_matcher = JobMatcher()
 
     # Main scheduler loop
     last_gmail_poll = 0.0
@@ -108,7 +142,7 @@ async def run_worker() -> None:
 
             # Trigger Job Board poller (runs every 300s default)
             if loop_now - last_job_board_poll >= settings.job_board_poll_interval_seconds:
-                asyncio.create_task(run_job_board_poll_cycle(job_poller))
+                asyncio.create_task(run_job_board_poll_cycle(job_poller, job_matcher))
                 last_job_board_poll = loop_now
 
             await asyncio.sleep(1)
