@@ -13,12 +13,29 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from jobpilot.bot.handlers import (
     delete_my_data_command,
     handle_callback_query,
+    lead_command,
     pause_command,
     resume_command,
     start_command,
+    stats_command,
+    threshold_command,
     timezone_command,
 )
-from jobpilot.db.models import Base, Event, GmailAccount, ProcessedEmail, Reminder, User
+from jobpilot.db.models import (
+    Application,
+    Base,
+    Company,
+    Event,
+    GmailAccount,
+    JobAlert,
+    JobPosting,
+    Outreach,
+    ProcessedEmail,
+    Reminder,
+    ResumeProfile,
+    User,
+    UserCompanyPref,
+)
 from jobpilot.security.crypto import encrypt_token
 
 
@@ -36,6 +53,13 @@ async def db_factory() -> AsyncGenerator[
             cast(Table, ProcessedEmail.__table__),
             cast(Table, Event.__table__),
             cast(Table, Reminder.__table__),
+            cast(Table, Company.__table__),
+            cast(Table, JobPosting.__table__),
+            cast(Table, Application.__table__),
+            cast(Table, Outreach.__table__),
+            cast(Table, JobAlert.__table__),
+            cast(Table, ResumeProfile.__table__),
+            cast(Table, UserCompanyPref.__table__),
         ]
         Base.metadata.create_all(bind=sync_conn, tables=target_tables)
 
@@ -356,3 +380,87 @@ async def test_handle_callback_query_dismiss(
         assert updated_event is not None
         assert updated_reminder.state == "dismissed"
         assert updated_event.status == "dismissed"
+
+
+@pytest.mark.asyncio
+async def test_lead_command(
+    db_factory: tuple[async_sessionmaker[AsyncSession], Callable[[], Any]],
+) -> None:
+    session_maker, get_session = db_factory
+    chat_id = 555444
+
+    async with session_maker() as session:
+        user = User(id=uuid.uuid4(), telegram_chat_id=chat_id, email="lead_user@test.com")
+        session.add(user)
+        await session.commit()
+
+    update = MagicMock()
+    update.effective_chat.id = chat_id
+    update.message.reply_text = AsyncMock()
+    context = MagicMock()
+    context.args = ["https://boards.greenhouse.io/anthropic/jobs/45678"]
+
+    with patch("jobpilot.bot.handlers.async_session_factory", get_session):
+        await lead_command(update, context)
+
+    assert update.message.reply_text.called
+    msg = update.message.reply_text.call_args[0][0]
+    assert "Job Lead Tracked" in msg
+    assert "Anthropic" in msg
+
+
+@pytest.mark.asyncio
+async def test_threshold_command(
+    db_factory: tuple[async_sessionmaker[AsyncSession], Callable[[], Any]],
+) -> None:
+    session_maker, get_session = db_factory
+    chat_id = 777888
+
+    async with session_maker() as session:
+        user = User(id=uuid.uuid4(), telegram_chat_id=chat_id)
+        session.add(user)
+        prof = ResumeProfile(
+            user_id=user.id,
+            structured_json={"skills": ["Python"]},
+        )
+        session.add(prof)
+        await session.commit()
+
+    update = MagicMock()
+    update.effective_chat.id = chat_id
+    update.message.reply_text = AsyncMock()
+    context = MagicMock()
+    context.args = ["0.65"]
+
+    with patch("jobpilot.bot.handlers.async_session_factory", get_session):
+        await threshold_command(update, context)
+
+    assert update.message.reply_text.called
+    msg = update.message.reply_text.call_args[0][0]
+    assert "Match threshold updated to 65%" in msg
+
+
+@pytest.mark.asyncio
+async def test_stats_command(
+    db_factory: tuple[async_sessionmaker[AsyncSession], Callable[[], Any]],
+) -> None:
+    session_maker, get_session = db_factory
+    chat_id = 111222
+
+    async with session_maker() as session:
+        user = User(id=uuid.uuid4(), telegram_chat_id=chat_id, email="stats@utdallas.edu")
+        session.add(user)
+        await session.commit()
+
+    update = MagicMock()
+    update.effective_chat.id = chat_id
+    update.message.reply_text = AsyncMock()
+    context = MagicMock()
+
+    with patch("jobpilot.bot.handlers.async_session_factory", get_session):
+        await stats_command(update, context)
+
+    assert update.message.reply_text.called
+    msg = update.message.reply_text.call_args[0][0]
+    assert "Your JobPilot Stats" in msg
+    assert "stats@utdallas.edu" in msg

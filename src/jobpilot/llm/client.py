@@ -70,13 +70,31 @@ class GeminiLLMClient(LLMClient):
             response_mime_type="application/json",
         )
 
-        # Async call
-        response = await client.aio.models.generate_content(
-            model=self.model,
-            contents=prompt,
-            config=config,
-        )
-        return response.text or "{}"
+        candidate_models = [self.model]
+        for fallback in ["gemini-3.5-flash", "gemini-3.8-flash", "gemini-flash-latest"]:
+            if fallback not in candidate_models:
+                candidate_models.append(fallback)
+
+        last_exc: Exception | None = None
+        for model_name in candidate_models:
+            try:
+                response = await client.aio.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                    config=config,
+                )
+                return response.text or "{}"
+            except Exception as exc:
+                last_exc = exc
+                logger.warning(
+                    "Gemini model %s request failed: %s, trying fallback...",
+                    model_name,
+                    exc,
+                )
+
+        if last_exc:
+            raise last_exc
+        return "{}"
 
 
 class AnthropicLLMClient(LLMClient):

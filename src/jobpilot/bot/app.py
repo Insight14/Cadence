@@ -16,12 +16,15 @@ from jobpilot.bot.handlers import (
     applications_command,
     delete_my_data_command,
     handle_callback_query,
+    lead_command,
     link_command,
     matches_command,
     mute_command,
     pause_command,
     resume_command,
     start_command,
+    stats_command,
+    threshold_command,
     timezone_command,
     unmute_command,
 )
@@ -47,6 +50,9 @@ def get_telegram_app() -> Application[Any, Any, Any, Any, Any, Any]:
         _bot_app.add_handler(CommandHandler("link", link_command))
         _bot_app.add_handler(CommandHandler("matches", matches_command))
         _bot_app.add_handler(CommandHandler("applications", applications_command))
+        _bot_app.add_handler(CommandHandler("lead", lead_command))
+        _bot_app.add_handler(CommandHandler("threshold", threshold_command))
+        _bot_app.add_handler(CommandHandler("stats", stats_command))
         _bot_app.add_handler(CommandHandler("mute", mute_command))
         _bot_app.add_handler(CommandHandler("unmute", unmute_command))
         _bot_app.add_handler(CommandHandler("timezone", timezone_command))

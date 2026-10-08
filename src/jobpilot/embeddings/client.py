@@ -54,9 +54,9 @@ class FakeEmbeddingsClient(BaseEmbeddingsClient):
 
 
 class GeminiEmbeddingsClient(BaseEmbeddingsClient):
-    """Generates dense vector embeddings using Google Gemini text-embedding-004."""
+    """Generates dense vector embeddings using Google Gemini embeddings API."""
 
-    def __init__(self, api_key: str, model_name: str = "text-embedding-004") -> None:
+    def __init__(self, api_key: str, model_name: str = "gemini-embedding-001") -> None:
         self.api_key = api_key
         self.model_name = model_name
         self._client: Any = None

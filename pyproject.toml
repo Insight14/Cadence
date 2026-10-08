@@ -70,6 +70,7 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/eval/run_eval.py" = ["T201", "ASYNC230"]
+"scripts/*" = ["T201"]
 "tests/*" = ["ASYNC230"]
 
 [tool.ruff.lint.isort]

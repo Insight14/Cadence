@@ -58,8 +58,8 @@ class Settings(BaseSettings):
     gemini_api_key: str = Field(default="", description="Google Gemini API Key")
     anthropic_api_key: str = Field(default="", description="Anthropic API Key")
     llm_model: str = Field(
-        default="gemini-2.0-flash",
-        description="Default LLM model name (e.g. gemini-2.0-flash or claude-3-5-haiku-20241022)",
+        default="gemini-3.8-flash",
+        description="Default LLM model name (e.g. gemini-3.8-flash or claude-3-5-haiku-20241022)",
     )
     embeddings_dimension: int = Field(
         default=768,

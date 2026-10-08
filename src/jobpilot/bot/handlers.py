@@ -5,7 +5,7 @@ import logging
 import uuid
 
 import httpx
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Message, Update
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
@@ -16,6 +16,7 @@ from jobpilot.db.models import (
     Company,
     Event,
     GmailAccount,
+    JobAlert,
     JobPosting,
     Outreach,
     Reminder,
@@ -86,6 +87,9 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                 f"**Available Commands:**\n"
                 f"• `/matches` — View your top matching open jobs right now\n"
                 f"• `/applications` — Track all active job applications & outreach\n"
+                f"• `/lead <url>` — Submit a manual job lead link to track\n"
+                f"• `/threshold <score>` — Set minimum match score (e.g. `0.50`)\n"
+                f"• `/stats` — View your personal application & reminder stats\n"
                 f"• `/mute <company>` — Mute job alerts for a specific company\n"
                 f"• `/unmute <company>` — Unmute job alerts for a company\n"
                 f"• `/timezone <IANA>` — Update your timezone (e.g. `America/New_York`)\n"
@@ -288,6 +292,205 @@ async def unmute_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         await update.message.reply_text(
             f"🔔 **Unmuted {company.name}!**\n"
             f"You will receive alerts when new matching roles open at this company.",
+            parse_mode=ParseMode.MARKDOWN,
+        )
+
+
+async def lead_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle /lead <url> command: manually track a job lead pasted by candidate."""
+    if not update.effective_chat or not update.message:
+        return
+
+    chat_id = update.effective_chat.id
+    args = context.args or []
+    if not args:
+        await update.message.reply_text(
+            "Usage: `/lead <job_url>`\n"
+            "Example: `/lead https://boards.greenhouse.io/stripe/jobs/12345`",
+            parse_mode=ParseMode.MARKDOWN,
+        )
+        return
+
+    job_url = args[0].strip()
+    if not job_url.startswith("http://") and not job_url.startswith("https://"):
+        await update.message.reply_text(
+            "❌ Please provide a valid URL starting with http:// or https://"
+        )
+        return
+
+    async with await async_session_factory() as db:
+        user = await db.scalar(select(User).where(User.telegram_chat_id == chat_id))
+        if not user:
+            await update.message.reply_text("❌ Account not linked. Use `/link <user_id>` first.")
+            return
+
+        import urllib.parse
+
+        parsed = urllib.parse.urlparse(job_url)
+        domain = parsed.netloc.lower().removeprefix("www.")
+        path_parts = [p for p in parsed.path.split("/") if p]
+
+        if "greenhouse.io" in domain and path_parts:
+            comp_name = path_parts[0].capitalize()
+        elif "lever.co" in domain and path_parts:
+            comp_name = path_parts[0].capitalize()
+        elif "ashbyhq.com" in domain and path_parts:
+            comp_name = path_parts[0].capitalize()
+        elif domain:
+            comp_name = domain.split(".")[0].capitalize()
+        else:
+            comp_name = "Company Lead"
+
+        stmt = select(Company).where(Company.name.ilike(comp_name))
+        company = await db.scalar(stmt)
+        if not company:
+            company = Company(
+                name=comp_name,
+                ats="other",
+                board_token=comp_name.lower().replace(" ", "-"),
+                domains=[domain],
+                tags=[],
+            )
+            db.add(company)
+            await db.flush()
+
+        stmt_job = select(JobPosting).where(JobPosting.url == job_url)
+        job = await db.scalar(stmt_job)
+        if not job:
+            job = JobPosting(
+                company_id=company.id,
+                external_id=f"lead_{uuid.uuid4().hex[:12]}",
+                title=f"{comp_name} Role (Manual Lead)",
+                url=job_url,
+                location="Direct Submission",
+                is_open=True,
+            )
+            db.add(job)
+            await db.flush()
+
+        stmt_app = select(Application).where(
+            Application.user_id == user.id,
+            Application.company_id == company.id,
+        )
+        app = await db.scalar(stmt_app)
+        if not app:
+            app = Application(
+                user_id=user.id,
+                company_id=company.id,
+                job_posting_id=job.id,
+                status="applied",
+                applied_at=datetime.datetime.now(datetime.UTC),
+            )
+            db.add(app)
+            await db.flush()
+
+        await db.commit()
+
+        await update.message.reply_text(
+            f"📌 **Job Lead Tracked!**\n\n"
+            f"🏢 **Company:** {company.name}\n"
+            f"🔗 **URL:** [{job_url}]({job_url})\n\n"
+            f"Track and generate cold outreach anytime using `/applications`.",
+            parse_mode=ParseMode.MARKDOWN,
+            disable_web_page_preview=True,
+        )
+
+
+async def threshold_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle /threshold <0.0 - 1.0> command: customize minimum match score threshold."""
+    if not update.effective_chat or not update.message:
+        return
+
+    chat_id = update.effective_chat.id
+    args = context.args or []
+    if not args:
+        await update.message.reply_text(
+            "Usage: `/threshold <score>` (e.g. `/threshold 0.50`)\n"
+            "Sets your minimum affinity threshold for job match alerts.",
+            parse_mode=ParseMode.MARKDOWN,
+        )
+        return
+
+    try:
+        val = float(args[0].strip())
+        if not (0.0 <= val <= 1.0):
+            raise ValueError()
+    except ValueError:
+        await update.message.reply_text(
+            "❌ Please provide a score between 0.0 and 1.0 (e.g. `0.50`)."
+        )
+        return
+
+    async with await async_session_factory() as db:
+        user = await db.scalar(select(User).where(User.telegram_chat_id == chat_id))
+        if not user:
+            await update.message.reply_text("❌ Account not linked.")
+            return
+
+        prof = await db.scalar(select(ResumeProfile).where(ResumeProfile.user_id == user.id))
+        if prof and prof.structured_json:
+            prof.structured_json["min_score_threshold"] = val
+            await db.commit()
+
+        await update.message.reply_text(
+            f"🎯 **Match threshold updated to {int(val * 100)}%!**\n"
+            f"You will receive alerts for jobs with at least {int(val * 100)}% skill affinity.",
+            parse_mode=ParseMode.MARKDOWN,
+        )
+
+
+async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle /stats command: candidate personalized activity summary."""
+    if not update.effective_chat or not update.message:
+        return
+
+    chat_id = update.effective_chat.id
+    async with await async_session_factory() as db:
+        user = await db.scalar(select(User).where(User.telegram_chat_id == chat_id))
+        if not user:
+            await update.message.reply_text("❌ Account not linked.")
+            return
+
+        app_count = (
+            await db.scalar(
+                select(func.count(Application.id)).where(Application.user_id == user.id)
+            )
+            or 0
+        )
+        rem_count = (
+            await db.scalar(
+                select(func.count(Reminder.id)).where(
+                    Reminder.user_id == user.id,
+                    Reminder.state.in_(["pending", "recurring"]),
+                )
+            )
+            or 0
+        )
+        alert_count = (
+            await db.scalar(select(func.count(JobAlert.id)).where(JobAlert.user_id == user.id)) or 0
+        )
+        muted_count = (
+            await db.scalar(
+                select(func.count(UserCompanyPref.id)).where(
+                    UserCompanyPref.user_id == user.id,
+                    UserCompanyPref.status == "muted",
+                )
+            )
+            or 0
+        )
+
+        prof = await db.scalar(select(ResumeProfile).where(ResumeProfile.user_id == user.id))
+        resume_status = "✅ Indexed" if prof else "⚠️ Upload Pending"
+
+        await update.message.reply_text(
+            f"📈 **Your JobPilot Stats:**\n\n"
+            f"👤 **Account:** `{user.email or 'Connected'}`\n"
+            f"📄 **Resume Profile:** {resume_status}\n"
+            f"🕒 **Timezone:** `{user.timezone}`\n\n"
+            f"📊 **Tracked Applications:** {app_count}\n"
+            f"⏰ **Active Assessment Reminders:** {rem_count}\n"
+            f"🎯 **Job Match Alerts Delivered:** {alert_count}\n"
+            f"🔕 **Muted Companies:** {muted_count}\n",
             parse_mode=ParseMode.MARKDOWN,
         )
 
